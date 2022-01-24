@@ -39,6 +39,8 @@ function Title(props){
             <style jsx>{`
                 ${Tag} {
                     color: ${appConfig.theme.colors.neutrals['300']};
+                    padding: 20px;
+                    marginBottom: 10px;
                 }
             `}
             </style>
