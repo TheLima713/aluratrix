@@ -186,13 +186,12 @@ export default function PaginaInicial() {
                   marginBottom: "16px",
                 }}
                 src={
-                  (username.length<3 || !`https://github.com/${username}.png`)
-                  ?"https://icon-library.com/images/no-user-image-icon/no-user-image-icon-3.jpg"
-                  :`https://github.com/${username}.png`
+                  (username.length<3 || `https://github.com/${username}`==0)?"https://icon-library.com/images/no-user-image-icon/no-user-image-icon-3.jpg":`https://github.com/${username}.png`
                 }
               />
             </a>
             <Text
+              style={{ display: username.length < 3 ? "none" : "flex" }}
               variant="body4"
               styleSheet={{
                 color: appConfig.theme.colors.neutrals[200],
