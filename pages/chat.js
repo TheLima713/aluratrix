@@ -148,9 +148,26 @@ export default function ChatPage() {
               }}
               iconName="arrowRight"
               onClick={() => {
-                {
-                  if (message.text) {
-                    handleNewMsg(message.text);
+                { 
+                  if(message.edit!=0){
+                    setMsgList(msgList.map((editMsg)=>{
+                        if(editMsg.id==message.edit){
+                            console.log("Editing message [" + editMsg.id + "]" + editMsg.text + " to message " + message.text)
+                            const msg = {
+                              id: editMsg.id,
+                              from: editMsg.from,
+                              text: message.text,
+                            };
+                            return msg;
+                        }
+                        else{
+                            return editMsg;
+                        }
+                    }))
+                    setMsg({text:"",edit:0});
+                  }
+                  else{   
+                      handleNewMsg(message.text);
                   }
                 }
               }}
