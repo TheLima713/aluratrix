@@ -8,36 +8,102 @@ import {
 } from "@skynexui/components";
 import React from "react";
 import appConfig from "../config.json";
+import { createClient } from "@supabase/supabase-js";
+import { useRouter } from "next/router";
+
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoiYW5vbiIsImlhdCI6MTY0MzI4MzMwOCwiZXhwIjoxOTU4ODU5MzA4fQ.KSQ2JTLdQkr_iAt62p_njCWvFi88NnG4OGrEbqvZXYQ";
+const SUPABASE_URL = "https://cdgumxhojlmimopqulxf.supabase.co";
+const supabaseClient = createClient(SUPABASE_URL,SUPABASE_ANON_KEY);
+
+//TODO make username global DONE!
+//TODO use supabase's created_at to display time and date
+//TODO fix date to show today and or yesterday
+//TODO make loading screen
+//TODO make mouseover with profile for user and use database for info
+//TODO make edit work with database DONE!
+//TODO make delete work with database DONE!
+
 
 export default function ChatPage() {
+  //const username = "TheLima713";
   const [message, setMsg] = React.useState({text:"",edit:0});
   const [msgList, setMsgList] = React.useState([]);
 
-  // Sua lógica vai aqui
+  const router = useRouter();
+  const { username } = router.query
 
-  //USER
-  //usuario digita message em textarea
-  //usuario aperta enter
-  //adicionar texto em uma lista
+  React.useEffect(()=>{
+    supabaseClient
+    .from("messages")
+    .select("*")
+    .order("id",{ascending:false})
+    .then(({data})=>{
+      console.log("Initial select: " + data);
+      setMsgList(data);
+    })  
+  },[])
 
-  //DEV
-  // [ ] useState dentro de um onChange, com if() para checar pelo Enter
-  // [ ] quando apertarem Enter, adicionar message a uma lista, limpar campo
+  //FUNCTIONS
 
-  // ./Sua lógica vai aqui
+  function mouseOver(msgAtual){
+    console.log("Mouse over message")
+  }
+
+  function msgDate(msgAtual){
+    console.log("setMsgDate?")
+  }
 
   function handleNewMsg(newMsg) {
     const mensagem = {
-      id: msgList.length + 1,
-      from: "TheLima713",
+      from: username,
       text: newMsg,
+      date: new Date().toLocaleDateString()/*.replace(new Date().getDate().toString(),"26")*/,
+      time: new Date().toLocaleTimeString().slice(0,5)
     };
+
+    
+    supabaseClient
+      .from("messages")
+      .insert([mensagem])
+      .then(({data})=>{
+        console.log("Performed insert: ",data);
+        setMsgList([data[0], ...msgList]);
+      })
+
     setMsg({text:"",edit:0});
-    setMsgList([mensagem, ...msgList]);
+  }
+
+  function editMsg(eMsg){
+    setMsgList(msgList.map((editMsg)=>{
+        if(editMsg.id==eMsg.edit){
+            editMsg.text = eMsg.text;
+            return editMsg;
+        }
+        else{
+            return editMsg;
+        }
+    }));
+    supabaseClient
+      .from("messages")
+      .update({text:eMsg.text})
+      .match({id:eMsg.edit})
+      .then(({data})=>{
+        console.log("Performed update: ",data);
+      });
+    setMsg({text:"",edit:0});
   }
 
   function deleteMsg(delMsg) {
-    setMsgList(msgList.filter(msgList.id != delMsg.id));
+    supabaseClient
+      .from("messages")
+      .delete()
+      .match({id:delMsg.id})
+      .then(({data})=>{
+        console.log("Performed delete: ",data);
+      });
+      setMsgList(msgList.filter((msgAtual)=>{
+        return msgAtual.id != delMsg.id
+      }));
   }
 
   return (
@@ -81,14 +147,21 @@ export default function ChatPage() {
             padding: "16px",
           }}
         >
-          <MessageList mensagens={msgList} setMsgList={setMsgList} setMsg={setMsg}/>
-          {/*msgList.map((msgAtual)=>{
+          <MessageList 
+            mensagens={msgList} 
+            setMsgList={setMsgList} 
+            deleteMsg={deleteMsg} 
+            setMsg={setMsg} 
+            mouseOver={mouseOver}
+            msgDate={msgDate}
+            />
+          {{/*msgList.map((msgAtual)=>{
               return(
                   <li key={msgAtual.id}>
                       {msgAtual.from}: {msgAtual.text}
                   </li>
               )
-          })*/}
+          })*/}}
           <Box
             as="form"
             styleSheet={{
@@ -96,6 +169,16 @@ export default function ChatPage() {
               alignItems: "center",
             }}
           >
+          <Image
+            styleSheet={{
+              width: "40px",
+              height: "40px",
+              borderRadius: "50%",
+              display: "inline-block",
+              marginRight: "8px",
+            }}
+            src={/*(invalidUser)?"https://icon-library.com/images/no-user-image-icon/no-user-image-icon-3.jpg":*/`https://github.com/${username}.png`}
+          />
             <TextField
               value={message.text}
               onChange={(event) => {
@@ -105,21 +188,7 @@ export default function ChatPage() {
                 if (event.key === "Enter" && !event.shiftKey) {
                     event.preventDefault();   
                     if(message.edit!=0){
-                      setMsgList(msgList.map((editMsg)=>{
-                          if(editMsg.id==message.edit){
-                              console.log("Editing message [" + editMsg.id + "]" + editMsg.text + " to message " + message.text)
-                              const msg = {
-                                id: editMsg.id,
-                                from: editMsg.from,
-                                text: message.text,
-                              };
-                              return msg;
-                          }
-                          else{
-                              return editMsg;
-                          }
-                      }))
-                      setMsg({text:"",edit:0});
+                      editMsg(message);
                     }
                     else{   
                         handleNewMsg(message.text);
@@ -150,21 +219,7 @@ export default function ChatPage() {
               onClick={() => {
                 { 
                   if(message.edit!=0){
-                    setMsgList(msgList.map((editMsg)=>{
-                        if(editMsg.id==message.edit){
-                            console.log("Editing message [" + editMsg.id + "]" + editMsg.text + " to message " + message.text)
-                            const msg = {
-                              id: editMsg.id,
-                              from: editMsg.from,
-                              text: message.text,
-                            };
-                            return msg;
-                        }
-                        else{
-                            return editMsg;
-                        }
-                    }))
-                    setMsg({text:"",edit:0});
+                    editMsg(message);
                   }
                   else{   
                       handleNewMsg(message.text);
@@ -204,11 +259,12 @@ function Header() {
 }
 
 function MessageList(props) {
+
   return (
     <Box
       tag="ul"
       styleSheet={{
-        overflow: "scroll",
+        overflow: "auto",
         display: "flex",
         flexDirection: "column-reverse",
         flex: 1,
@@ -217,7 +273,7 @@ function MessageList(props) {
       }}
     >
       {props.mensagens.map((msgAtual) => {
-        return (
+          return (
           <Text
             key={msgAtual.id}
             tag="li"
@@ -235,28 +291,31 @@ function MessageList(props) {
                 marginBottom: "8px",
               }}
             >
-              <Image
-                styleSheet={{
-                  width: "20px",
-                  height: "20px",
-                  borderRadius: "50%",
-                  display: "inline-block",
-                  marginRight: "8px",
-                }}
-                src={`https://github.com/${msgAtual.from}.png`}
-              />
+            <Image
+              onMouseOver={()=>{
+                props.mouseOver(msgAtual);
+              }}
+              styleSheet={{
+                width: "30px",
+                height: "30px",
+                borderRadius: "50%",
+                display: "inline-block",
+                marginRight: "8px",
+              }}
+              src={/*(invalidUser)?"https://icon-library.com/images/no-user-image-icon/no-user-image-icon-3.jpg":*/`https://github.com/${msgAtual.from}.png`}
+            />
               <Text tag="strong">{msgAtual.from}</Text>
               <Text
                 styleSheet={{
-                  fontSize: "10px",
+                  fontSize: "15px",
                   marginLeft: "8px",
                   color: appConfig.theme.colors.neutrals[300],
                 }}
                 tag="span"
               >
-                {new Date().toLocaleDateString()}
+               
               </Text>
-              {/*
+              {{/* Icons 
               <Icon
                 name="FaPencilAlt"  styleSheet={{
                     marginLeft: '15px',
@@ -291,7 +350,7 @@ function MessageList(props) {
                     }))
                 }}
             />
-            */}
+            */}}
               <Button
                 onClick={()=>{
                     props.setMsg({text:msgAtual.text,edit:msgAtual.id});
@@ -307,9 +366,7 @@ function MessageList(props) {
               />
               <Button
                 onClick={() => {
-                    props.setMsgList(props.mensagens.filter((msg)=>{
-                        return msg.id!==msgAtual.id
-                    }))
+                    props.deleteMsg(msgAtual);
                 }}
                 variant="tertiary"
                 iconName="FaTrash"

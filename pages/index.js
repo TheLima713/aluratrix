@@ -93,7 +93,7 @@ export default function PaginaInicial() {
             //quando submeter o botão de login:
             onSubmit={function (event) {
               event.preventDefault();
-              router.push("/chat");
+              router.push(`/chat?username=${username}`);
               console.log("form submitted");
             }}
             styleSheet={{
