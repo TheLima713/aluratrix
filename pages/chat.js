@@ -45,20 +45,30 @@ export default function ChatPage() {
 
   //FUNCTIONS
 
+  function writeDate(time){
+    const day = new Date().getDate();
+    const dayDiff = day - parseInt(time.substring(8,10));
+    var date = "";
+    switch(dayDiff){
+      case 0:
+        date = "Hoje, " + time.substring(11,16)
+        break;
+      case 1:
+        date = "Ontem, " + time.substring(11,16)
+          break;
+      default:
+        date = time.substring(8,10)+ "/" + time.substring(5,7) + "/" + time.substring(0,4)
+
+    }
+    return date;
+  }
   function mouseOver(msgAtual){
-    console.log("Mouse over message")
+    console.log("Mouse over " + msgAtual.from)
   }
-
-  function msgDate(msgAtual){
-    console.log("setMsgDate?")
-  }
-
   function handleNewMsg(newMsg) {
     const mensagem = {
       from: username,
-      text: newMsg,
-      date: new Date().toLocaleDateString()/*.replace(new Date().getDate().toString(),"26")*/,
-      time: new Date().toLocaleTimeString().slice(0,5)
+      text: newMsg
     };
 
     
@@ -72,7 +82,6 @@ export default function ChatPage() {
 
     setMsg({text:"",edit:0});
   }
-
   function editMsg(eMsg){
     setMsgList(msgList.map((editMsg)=>{
         if(editMsg.id==eMsg.edit){
@@ -92,7 +101,6 @@ export default function ChatPage() {
       });
     setMsg({text:"",edit:0});
   }
-
   function deleteMsg(delMsg) {
     supabaseClient
       .from("messages")
@@ -153,15 +161,8 @@ export default function ChatPage() {
             deleteMsg={deleteMsg} 
             setMsg={setMsg} 
             mouseOver={mouseOver}
-            msgDate={msgDate}
+            writeDate={writeDate}
             />
-          {{/*msgList.map((msgAtual)=>{
-              return(
-                  <li key={msgAtual.id}>
-                      {msgAtual.from}: {msgAtual.text}
-                  </li>
-              )
-          })*/}}
           <Box
             as="form"
             styleSheet={{
@@ -177,7 +178,7 @@ export default function ChatPage() {
               display: "inline-block",
               marginRight: "8px",
             }}
-            src={/*(invalidUser)?"https://icon-library.com/images/no-user-image-icon/no-user-image-icon-3.jpg":*/`https://github.com/${username}.png`}
+            src={`https://github.com/${username}.png`}
           />
             <TextField
               value={message.text}
@@ -302,7 +303,7 @@ function MessageList(props) {
                 display: "inline-block",
                 marginRight: "8px",
               }}
-              src={/*(invalidUser)?"https://icon-library.com/images/no-user-image-icon/no-user-image-icon-3.jpg":*/`https://github.com/${msgAtual.from}.png`}
+              src={`https://github.com/${msgAtual.from}.png`}
             />
               <Text tag="strong">{msgAtual.from}</Text>
               <Text
@@ -313,44 +314,8 @@ function MessageList(props) {
                 }}
                 tag="span"
               >
-               
+              {props.writeDate(msgAtual.created_at)}
               </Text>
-              {{/* Icons 
-              <Icon
-                name="FaPencilAlt"  styleSheet={{
-                    marginLeft: '15px',
-                    width: '15px',
-                    height: '15px',
-                    color: appConfig.theme.colors.neutrals['000'],
-                    hover: {
-                        color: appConfig.theme.colors.primary['200'],
-                    },
-                    display:'flex',
-                    alignItems: 'center'
-                }}
-                onClick={()=>{
-                    props.setMsg({text:msgAtual.text,edit:msgAtual.id});
-                }}
-              />
-              <Icon
-                name="FaTrash"  styleSheet={{
-                    marginLeft: '15px',
-                    width: '15px',
-                    height: '15px',
-                    color: appConfig.theme.colors.neutrals['000'],
-                    hover: {
-                        color: appConfig.theme.colors.primary['200'],
-                    },
-                    display: 'flex',
-                    alignItems: 'center'
-                }}
-                onClick={() => {
-                    props.setMsgList(props.mensagens.filter((msg)=>{
-                        return msg.id!==msgAtual.id
-                    }))
-                }}
-            />
-            */}}
               <Button
                 onClick={()=>{
                     props.setMsg({text:msgAtual.text,edit:msgAtual.id});
