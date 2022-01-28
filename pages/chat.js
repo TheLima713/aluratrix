@@ -18,7 +18,7 @@ const supabaseClient = createClient(SUPABASE_URL,SUPABASE_ANON_KEY);
 //TODO make username global DONE!
 //TODO use supabase's created_at to display time and date DONE!
 //TODO fix date to show today and or yesterday DONE!
-//TODO make loading screen
+//TODO make loading screen DONE!
 //TODO make mouseover with profile for user and use database for info
 //TODO make edit work with database DONE!
 //TODO make delete work with database DONE!
@@ -28,6 +28,7 @@ export default function ChatPage() {
   //const username = "TheLima713";
   const [message, setMsg] = React.useState({text:"",edit:0});
   const [msgList, setMsgList] = React.useState([]);
+  const [msgsLoaded, setMsgsLoaded] = React.useState(false);
 
   const router = useRouter();
   const { username } = router.query
@@ -40,6 +41,7 @@ export default function ChatPage() {
     .then(({data})=>{
       console.log("Initial select: " + data);
       setMsgList(data);
+      setMsgsLoaded(true);
     })  
   },[])
 
@@ -79,15 +81,6 @@ export default function ChatPage() {
         console.log("Performed insert: ",data);
         setMsgList([data[0], ...msgList]);
       })
-      
-      supabaseClient
-      .from("messages")
-      .select("*")
-      .order("id",{ascending:false})
-      .then(({data})=>{
-        console.log("Initial select: " + data);
-        setMsgList(data);
-      })  
 
     setMsg({text:"",edit:0});
   }
@@ -121,6 +114,28 @@ export default function ChatPage() {
       setMsgList(msgList.filter((msgAtual)=>{
         return msgAtual.id != delMsg.id
       }));
+  }
+
+  if(!msgsLoaded){
+    return (
+      <>
+          <Box
+              styleSheet={{
+                  
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+              }}
+          >
+              <Image 
+                styleSheet={{
+                  width: '100%',
+                  height: '100vh',
+                }}
+                className='load'  src='https://res.cloudinary.com/practicaldev/image/fetch/s--eTg89weN--/c_limit%2Cf_auto%2Cfl_progressive%2Cq_66%2Cw_880/https://dev-to-uploads.s3.amazonaws.com/i/6plr4gy0co6qpd3a484f.gif' />
+          </Box>
+      </>
+  )
   }
 
   return (
