@@ -11,8 +11,6 @@ import appConfig from "../config.json";
 import { createClient } from "@supabase/supabase-js";
 import { useRouter } from "next/router";
 
-const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoiYW5vbiIsImlhdCI6MTY0MzI4MzMwOCwiZXhwIjoxOTU4ODU5MzA4fQ.KSQ2JTLdQkr_iAt62p_njCWvFi88NnG4OGrEbqvZXYQ";
-const SUPABASE_URL = "https://cdgumxhojlmimopqulxf.supabase.co";
 const supabaseClient = createClient(SUPABASE_URL,SUPABASE_ANON_KEY);
 
 //TODO make username global DONE!
