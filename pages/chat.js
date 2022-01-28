@@ -66,6 +66,7 @@ export default function ChatPage() {
       setMsgList(data);
       setMsgsLoaded(true);
     })  
+    
     realTimeMsgListener((eventType,newMsg)=>{
       if(eventType==='INSERT'){
         setMsgList((currentMsgList)=>{
@@ -232,16 +233,18 @@ export default function ChatPage() {
             as="form"
             styleSheet={{
               display: "flex",
+              flexWrap:"wrap",
               alignItems: "center",
             }}
           >
           <Image
             styleSheet={{
-              width: "50px",
-              height: "50px",
+              maxWidth: "50px",
+              maxHeight: "50px",
               borderRadius: "50%",
               display: "inline-block",
               marginRight: "8px",
+              flex:"1"
             }}
             src={`https://github.com/${username}.png`}
           />
@@ -264,7 +267,7 @@ export default function ChatPage() {
             placeholder="Insira sua mensagem aqui..."
             type="textarea"
             styleSheet={{
-              width: "100%",
+              width: "70%",
               border: "0",
               resize: "none",
               borderRadius: "5px",
@@ -273,6 +276,7 @@ export default function ChatPage() {
               marginRight: "12px",
               marginTop: "10px",
               color: appConfig.theme.colors.neutrals[200],
+              flex:"1"
             }}
             />
             <ButtonSendSticker
