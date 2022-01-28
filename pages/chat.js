@@ -10,6 +10,10 @@ import React from "react";
 import appConfig from "../config.json";
 import { createClient } from "@supabase/supabase-js";
 import { useRouter } from "next/router";
+import { ButtonSendSticker } from '../src/components/ButtonSendSticker';
+
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoiYW5vbiIsImlhdCI6MTY0MzI4MzMwOCwiZXhwIjoxOTU4ODU5MzA4fQ.KSQ2JTLdQkr_iAt62p_njCWvFi88NnG4OGrEbqvZXYQ";
+const SUPABASE_URL = "https://cdgumxhojlmimopqulxf.supabase.co";
 
 const supabaseClient = createClient(SUPABASE_URL,SUPABASE_ANON_KEY);
 
@@ -17,19 +21,40 @@ const supabaseClient = createClient(SUPABASE_URL,SUPABASE_ANON_KEY);
 //TODO use supabase's created_at to display time and date DONE!
 //TODO fix date to show today and or yesterday DONE!
 //TODO make loading screen DONE!
-//TODO make mouseover with profile for user and use database for info
 //TODO make edit work with database DONE!
 //TODO make delete work with database DONE!
+//TODO make mouseover with profile for user and use database for info
+//TODO change stickers on config.json to object, and replace :{name}: with embeded sticker
+//TODO make delete and update message call the listener
 
+function realTimeMsgListener(msgFunc){
+  return supabaseClient
+    .from('messages')
+    .on('*', (response)=>{
+      if(response.eventType==='INSERT'){
+        console.log('insert response: ', response.new)
+        msgFunc('INSERT',response.new);
+      }
+      else if(response.eventType==='DELETE'){
+        console.log('delete response: ', response.old)
+        msgFunc('DELETE',response.old);
+      }
+      else if(response.eventType==='UPDATE'){
+        console.log('update response: ', response.new)
+        msgFunc('UPDATE',response.new);
+      }
+    })
+    .subscribe();
+}
 
 export default function ChatPage() {
   //const username = "TheLima713";
   const [message, setMsg] = React.useState({text:"",edit:0});
-  const [msgList, setMsgList] = React.useState([]);
+  const [msgList, setMsgList] = React.useState([]);//necessario passar por função caso listener precise do valor atual
   const [msgsLoaded, setMsgsLoaded] = React.useState(false);
 
   const router = useRouter();
-  const { username } = router.query
+  const username = router.query.username//nao é em tempo real, diferentemente do useState!
 
   React.useEffect(()=>{
     supabaseClient
@@ -41,6 +66,37 @@ export default function ChatPage() {
       setMsgList(data);
       setMsgsLoaded(true);
     })  
+    realTimeMsgListener((eventType,newMsg)=>{
+      if(eventType==='INSERT'){
+        setMsgList((currentMsgList)=>{
+          return [newMsg, ...currentMsgList];
+        })
+      }
+      else if(eventType==='DELETE'){
+        setMsgList((currentMsgList)=>{
+          return (
+            currentMsgList.filter((msgAtual)=>{
+              return msgAtual.id !== newMsg.id
+            })
+          )
+      });
+      }
+      else if(eventType==='UPDATE'){
+        setMsgList((currentMsgList)=>{
+          return(
+            currentMsgList.map((editMsg)=>{
+                if(editMsg.id===newMsg.id){
+                    editMsg.text = newMsg.text;
+                    return editMsg;
+                }
+                else{
+                    return editMsg;
+                }
+            })
+          )
+        });
+      }
+    })
   },[])
 
   //FUNCTIONS
@@ -77,21 +133,11 @@ export default function ChatPage() {
       .insert([mensagem])
       .then(({data})=>{
         console.log("Performed insert: ",data);
-        setMsgList([data[0], ...msgList]);
       })
 
     setMsg({text:"",edit:0});
   }
   function editMsg(eMsg){
-    setMsgList(msgList.map((editMsg)=>{
-        if(editMsg.id==eMsg.edit){
-            editMsg.text = eMsg.text;
-            return editMsg;
-        }
-        else{
-            return editMsg;
-        }
-    }));
     supabaseClient
       .from("messages")
       .update({text:eMsg.text})
@@ -109,9 +155,6 @@ export default function ChatPage() {
       .then(({data})=>{
         console.log("Performed delete: ",data);
       });
-      setMsgList(msgList.filter((msgAtual)=>{
-        return msgAtual.id != delMsg.id
-      }));
   }
 
   if(!msgsLoaded){
@@ -194,44 +237,56 @@ export default function ChatPage() {
           >
           <Image
             styleSheet={{
-              width: "40px",
-              height: "40px",
+              width: "50px",
+              height: "50px",
               borderRadius: "50%",
               display: "inline-block",
               marginRight: "8px",
             }}
             src={`https://github.com/${username}.png`}
           />
-            <TextField
-              value={message.text}
-              onChange={(event) => {
-                setMsg({text:event.target.value,edit:message.edit});
-              }}
-              onKeyPress={(event) => {
-                if (event.key === "Enter" && !event.shiftKey) {
-                    event.preventDefault();   
-                    if(message.edit!=0){
-                      editMsg(message);
-                    }
-                    else{   
-                        handleNewMsg(message.text);
-                    }
-                }
-              }}
-              placeholder="Insira sua mensagem aqui..."
-              type="textarea"
-              styleSheet={{
-                width: "100%",
-                border: "0",
-                resize: "none",
-                borderRadius: "5px",
-                padding: "6px 8px",
-                backgroundColor: appConfig.theme.colors.neutrals[800],
-                marginRight: "12px",
-                color: appConfig.theme.colors.neutrals[200],
+          <TextField
+            value={message.text}
+            onChange={(event) => {
+              setMsg({text:event.target.value,edit:message.edit});
+            }}
+            onKeyPress={(event) => {
+              if (event.key === "Enter" && !event.shiftKey) {
+                  event.preventDefault();   
+                  if(message.edit!=0){
+                    editMsg(message);
+                  }
+                  else{   
+                      handleNewMsg(message.text);
+                  }
+              }
+            }}
+            placeholder="Insira sua mensagem aqui..."
+            type="textarea"
+            styleSheet={{
+              width: "100%",
+              border: "0",
+              resize: "none",
+              borderRadius: "5px",
+              padding: "8px 8px",
+              backgroundColor: appConfig.theme.colors.neutrals[800],
+              marginRight: "12px",
+              marginTop: "10px",
+              color: appConfig.theme.colors.neutrals[200],
+            }}
+            />
+            <ButtonSendSticker
+              onStickerClick={(sticker)=>{
+                console.log('set sticker: ' + sticker)
+                handleNewMsg(':sticker: ' + sticker)
               }}
             />
             <Button
+              styleSheet={{
+                minWidth: '50px',
+                minHeight: '50px',
+                margin:'5px'
+              }}
               buttonColors={{
                 contrastColor: appConfig.theme.colors.neutrals["000"],
                 mainColor: appConfig.theme.colors.primary[500],
@@ -365,7 +420,14 @@ function MessageList(props) {
                 }}
               />
             </Box>
-            {msgAtual.text}
+            {msgAtual.text.startsWith(':sticker:')
+              ? <Image
+                  styleSheet={{
+                    maxWidth:'10vh',
+                    maxHeight:'10vh'
+                  }}
+                  src={msgAtual.text.replace(':sticker:','')}/>
+              : msgAtual.text}
           </Text>
         );
       })}
