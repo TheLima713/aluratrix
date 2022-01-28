@@ -16,8 +16,8 @@ const SUPABASE_URL = "https://cdgumxhojlmimopqulxf.supabase.co";
 const supabaseClient = createClient(SUPABASE_URL,SUPABASE_ANON_KEY);
 
 //TODO make username global DONE!
-//TODO use supabase's created_at to display time and date
-//TODO fix date to show today and or yesterday
+//TODO use supabase's created_at to display time and date DONE!
+//TODO fix date to show today and or yesterday DONE!
 //TODO make loading screen
 //TODO make mouseover with profile for user and use database for info
 //TODO make edit work with database DONE!
@@ -79,6 +79,15 @@ export default function ChatPage() {
         console.log("Performed insert: ",data);
         setMsgList([data[0], ...msgList]);
       })
+      
+      supabaseClient
+      .from("messages")
+      .select("*")
+      .order("id",{ascending:false})
+      .then(({data})=>{
+        console.log("Initial select: " + data);
+        setMsgList(data);
+      })  
 
     setMsg({text:"",edit:0});
   }
