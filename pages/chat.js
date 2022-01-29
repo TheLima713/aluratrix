@@ -10,12 +10,13 @@ import React from "react";
 import appConfig from "../config.json";
 import { createClient } from "@supabase/supabase-js";
 import { useRouter } from "next/router";
-import { ButtonSendSticker } from '../src/components/ButtonSendSticker';
+import { ButtonSendSticker } from "../src/components/ButtonSendSticker";
 
-const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoiYW5vbiIsImlhdCI6MTY0MzI4MzMwOCwiZXhwIjoxOTU4ODU5MzA4fQ.KSQ2JTLdQkr_iAt62p_njCWvFi88NnG4OGrEbqvZXYQ";
+const SUPABASE_ANON_KEY =
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoiYW5vbiIsImlhdCI6MTY0MzI4MzMwOCwiZXhwIjoxOTU4ODU5MzA4fQ.KSQ2JTLdQkr_iAt62p_njCWvFi88NnG4OGrEbqvZXYQ";
 const SUPABASE_URL = "https://cdgumxhojlmimopqulxf.supabase.co";
 
-const supabaseClient = createClient(SUPABASE_URL,SUPABASE_ANON_KEY);
+const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 //TODO make username global DONE!
 //TODO use supabase's created_at to display time and date DONE!
@@ -27,21 +28,19 @@ const supabaseClient = createClient(SUPABASE_URL,SUPABASE_ANON_KEY);
 //TODO change stickers on config.json to object, and replace :{name}: with embeded sticker DONE!
 //TODO make delete and update message call the listener DONE!!
 
-function realTimeMsgListener(msgFunc){
+function realTimeMsgListener(msgFunc) {
   return supabaseClient
-    .from('messages')
-    .on('*', (response)=>{
-      if(response.eventType==='INSERT'){
+    .from("messages")
+    .on("*", (response) => {
+      if (response.eventType === "INSERT") {
         //console.log('insert response: ', response.new)
-        msgFunc('INSERT',response.new);
-      }
-      else if(response.eventType==='DELETE'){
+        msgFunc("INSERT", response.new);
+      } else if (response.eventType === "DELETE") {
         //console.log('delete response: ', response.old)
-        msgFunc('DELETE',response.old);
-      }
-      else if(response.eventType==='UPDATE'){
+        msgFunc("DELETE", response.old);
+      } else if (response.eventType === "UPDATE") {
         //console.log('update response: ', response.new)
-        msgFunc('UPDATE',response.new);
+        msgFunc("UPDATE", response.new);
       }
     })
     .subscribe();
@@ -49,196 +48,192 @@ function realTimeMsgListener(msgFunc){
 
 export default function ChatPage() {
   //const username = "TheLima713";
-  const [message, setMsg] = React.useState({text:"",edit:0});
-  const [msgList, setMsgList] = React.useState([]);//necessario passar por função caso listener precise do valor atual
+  const [message, setMsg] = React.useState({ text: "", edit: 0 });
+  const [msgList, setMsgList] = React.useState([]); //necessario passar por função caso listener precise do valor atual
   const [msgsLoaded, setMsgsLoaded] = React.useState(false);
-  const [emoji,setEmoji] = React.useState('');
-  const [updateMsg,setUpdateMsg] = React.useState(true);
+  const [updateMsg, setUpdateMsg] = React.useState(true);
 
   const router = useRouter();
-  const username = router.query.username//nao é em tempo real, diferentemente do useState!
+  const username = router.query.username; //nao é em tempo real, diferentemente do useState!
 
-  React.useEffect(()=>{
+  React.useEffect(() => {
     supabaseClient
-    .from("messages")
-    .select("*")
-    .order("id",{ascending:false})
-    .then(({data})=>{
-      //console.log("Initial select: " + data);
-      setMsgList(data);
-      setMsgsLoaded(true);
-    })  
-    
-    realTimeMsgListener((eventType,newMsg)=>{
-      if(eventType==='INSERT'){
-        setMsgList((currentMsgList)=>{
-          return [newMsg, ...currentMsgList];
-        })
-      }
-      else if(eventType==='DELETE'){
-        setMsgList((currentMsgList)=>{
-          return (
-            currentMsgList.filter((msgAtual)=>{
-              return msgAtual.id !== newMsg.id
-            })
-          )
+      .from("messages")
+      .select("*")
+      .order("id", { ascending: false })
+      .then(({ data }) => {
+        //console.log("Initial select: " + data);
+        setMsgList(data);
+        setMsgsLoaded(true);
       });
-      }
-      else if(eventType==='UPDATE'){
-        setMsgList((currentMsgList)=>{
-          return(
-            currentMsgList.map((editMsg)=>{
-                if(editMsg.id===newMsg.id){
-                    editMsg.text = newMsg.text;
-                    return editMsg;
-                }
-                else{
-                    return editMsg;
-                }
-            })
-          )
+
+    realTimeMsgListener((eventType, newMsg) => {
+      if (eventType === "INSERT") {
+        setMsgList((currentMsgList) => {
+          return [newMsg, ...currentMsgList];
+        });
+      } else if (eventType === "DELETE") {
+        setMsgList((currentMsgList) => {
+          return currentMsgList.filter((msgAtual) => {
+            return msgAtual.id !== newMsg.id;
+          });
+        });
+      } else if (eventType === "UPDATE") {
+        setMsgList((currentMsgList) => {
+          return currentMsgList.map((editMsg) => {
+            if (editMsg.id === newMsg.id) {
+              editMsg.text = newMsg.text;
+              return editMsg;
+            } else {
+              return editMsg;
+            }
+          });
         });
       }
-    })
-  },[])
-  
+    });
+  }, []);
+
   //effect pra atualizar a mensagem sempre, checando se a ultima "palavra" eh um emoji
-  React.useEffect(()=>{
-    var currMsgSplit = message.text.split(' ')
-    var lastMsg = currMsgSplit[currMsgSplit.length-1]
-    for(var n = 0; n < currMsgSplit.length;n++){
-      if(currMsgSplit[n].length!=1 && currMsgSplit[n].startsWith(':') && currMsgSplit[n].endsWith(':')){
-        currMsgSplit[n] = currMsgSplit[n].replaceAll(':','')
-        currMsgSplit[n] = currMsgSplit[n].replaceAll('_',' ')
-        fetch('https://unpkg.com/emoji.json@13.1.0/emoji.json')
-        .then((response)=>{
-          return response.json()
-        })
-        .then((data)=>{
-          data.every((emoji)=>{
-            if(emoji.name===currMsgSplit[n]){
-              //console.log("emoji: ", emoji)
-              setEmoji(emoji.char)
-              setMsg((currMsg)=>{
-                currMsgSplit[n] = emoji.char + " ";
-                var text = currMsgSplit.join(' ');
-                return {text: text, edit: message.edit}
-              })
-              return false
-            }
-            else{
-              return true;
-            }
+  React.useEffect(() => {
+    var currMsgSplit = message.text.split(" ");
+    var lastMsg = currMsgSplit[currMsgSplit.length - 1];
+    for (var n = 0; n < currMsgSplit.length; n++) {
+      if (
+        currMsgSplit[n].length != 1 &&
+        currMsgSplit[n].startsWith(":") &&
+        currMsgSplit[n].endsWith(":")
+      ) {
+        currMsgSplit[n] = currMsgSplit[n].replaceAll(":", "");
+        currMsgSplit[n] = currMsgSplit[n].replaceAll("_", " ");
+        fetch("https://unpkg.com/emoji.json@13.1.0/emoji.json")
+          .then((response) => {
+            return response.json();
           })
-        })
+          .then((data) => {
+            data.every((emoji) => {
+              if (emoji.name === currMsgSplit[n]) {
+                //console.log("emoji: ", emoji)
+                setMsg((currMsg) => {
+                  currMsgSplit[n] = emoji.char + " ";
+                  var text = currMsgSplit.join(" ");
+                  return { text: text, edit: message.edit };
+                });
+                return false;
+              } else {
+                return true;
+              }
+            });
+          });
       }
     }
-  },[updateMsg])
+  }, [updateMsg]);
 
   //FUNCTIONS
 
-  function showMsg(msgAtual){
-    return ( 
-      msgAtual.text.startsWith('/sticker:')
-      ? <Image
-          styleSheet={{
-            maxWidth:'10vh',
-            maxHeight:'10vh'
-          }}
-          src={appConfig.stickers[msgAtual.text.replace('/sticker:','')]}/>
-      : msgAtual.text.startsWith('//sticker:')
-      ? msgAtual.text.replace('//','/')
-      : msgAtual.text
-    )
+  function showMsg(msgAtual) {
+    return msgAtual.text.startsWith("/sticker:") ? (
+      <Image
+        styleSheet={{
+          maxWidth: "10vh",
+          maxHeight: "10vh",
+        }}
+        src={appConfig.stickers[msgAtual.text.replace("/sticker:", "")]}
+      />
+    ) : msgAtual.text.startsWith("//sticker:") ? (
+      msgAtual.text.replace("//", "/")
+    ) : (
+      msgAtual.text
+    );
   }
-  function writeDate(time){
+  function writeDate(time) {
     const day = new Date().getDate();
-    const dayDiff = day - parseInt(time.substring(8,10));
+    const dayDiff = day - parseInt(time.substring(8, 10));
     var date = "";
-    switch(dayDiff){
+    switch (dayDiff) {
       case 0:
-        date = "Hoje, " + time.substring(11,16)
+        date = "Hoje, " + time.substring(11, 16);
         break;
       case 1:
-        date = "Ontem, " + time.substring(11,16)
-          break;
+        date = "Ontem, " + time.substring(11, 16);
+        break;
       default:
-        date = time.substring(8,10)+ "/" + time.substring(5,7) + "/" + time.substring(0,4)
-
+        date =
+          time.substring(8, 10) +
+          "/" +
+          time.substring(5, 7) +
+          "/" +
+          time.substring(0, 4);
     }
     return date;
   }
-  function mouseOver(msgAtual){
-    //console.log("Mouse over " + msgAtual.from)
-  }
-
   function handleNewMsg(newMsg) {
-
-    if(newMsg.startsWith('/') && !newMsg.startsWith('//')){
+    if (newMsg.startsWith("/") && !newMsg.startsWith("//")) {
       var cc = newMsg.charCodeAt(1);
-      var isAN = ((cc > 47 && cc < 58) || (cc > 64 && cc < 91) || (cc > 96 && cc < 123))
-      if(!isAN){
-        newMsg = newMsg.replace('/','')
+      var isAN =
+        (cc > 47 && cc < 58) || (cc > 64 && cc < 91) || (cc > 96 && cc < 123);
+      if (!isAN) {
+        newMsg = newMsg.replace("/", "");
       }
     }
     var text = newMsg;
 
     const mensagem = {
       from: username,
-      text: text
+      text: text,
     };
-    
+
     supabaseClient
       .from("messages")
       .insert([mensagem])
-      .then(({data})=>{
+      .then(({ data }) => {
         //console.log("Performed insert: ",data);
-      })
+      });
 
-      setMsg({text:"",edit:0});
+    setMsg({ text: "", edit: 0 });
   }
-  function editMsg(eMsg){
+  function editMsg(eMsg) {
     supabaseClient
       .from("messages")
-      .update({text:eMsg.text})
-      .match({id:eMsg.edit,from:username})
-      .then(({data})=>{
+      .update({ text: eMsg.text })
+      .match({ id: eMsg.edit, from: username })
+      .then(({ data }) => {
         //console.log("Performed update: ",data);
       });
-    setMsg({text:"",edit:0});
+    setMsg({ text: "", edit: 0 });
   }
   function deleteMsg(delMsg) {
-    if(delMsg.from===username){
+    if (delMsg.from === username) {
       supabaseClient
         .from("messages")
         .delete()
-        .match({id:delMsg.id})
-        .then(({data})=>{
+        .match({ id: delMsg.id })
+        .then(({ data }) => {
           //console.log("Performed delete: ",data);
         });
     }
   }
 
-  if(!msgsLoaded){
+  if (!msgsLoaded) {
     return (
       <>
-          <Box
-              styleSheet={{
-                  
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-              }}
-          >
-              <Image 
-                styleSheet={{
-                  width: '100%',
-                  height: '100vh',
-                }}
-                className='load'  src='https://res.cloudinary.com/practicaldev/image/fetch/s--eTg89weN--/c_limit%2Cf_auto%2Cfl_progressive%2Cq_66%2Cw_880/https://dev-to-uploads.s3.amazonaws.com/i/6plr4gy0co6qpd3a484f.gif' />
-          </Box>
+        <Box
+          styleSheet={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
+          <Image
+            styleSheet={{
+              width: "100%",
+              height: "100vh",
+            }}
+            className="load"
+            src="https://res.cloudinary.com/practicaldev/image/fetch/s--eTg89weN--/c_limit%2Cf_auto%2Cfl_progressive%2Cq_66%2Cw_880/https://dev-to-uploads.s3.amazonaws.com/i/6plr4gy0co6qpd3a484f.gif"
+          />
+        </Box>
       </>
-  )
+    );
   }
 
   return (
@@ -249,7 +244,7 @@ export default function ChatPage() {
         justifyContent: "center",
         backgroundColor: appConfig.theme.colors.primary[500],
         backgroundImage: `url(https://res.cloudinary.com/practicaldev/image/fetch/s--eTg89weN--/c_limit%2Cf_auto%2Cfl_progressive%2Cq_66%2Cw_880/https://dev-to-uploads.s3.amazonaws.com/i/6plr4gy0co6qpd3a484f.gif)`,
-        backgroundRepeat: "repeat-y",
+        backgroundRepeat: "no-repeat",
         backgroundSize: "cover",
         backgroundBlendMode: "multiply",
         color: appConfig.theme.colors.neutrals["000"],
@@ -282,78 +277,76 @@ export default function ChatPage() {
             padding: "16px",
           }}
         >
-          <MessageList 
-            mensagens={msgList} 
-            setMsgList={setMsgList} 
-            deleteMsg={deleteMsg} 
-            setMsg={setMsg} 
-            mouseOver={mouseOver}
+          <MessageList
+            mensagens={msgList}
+            setMsgList={setMsgList}
+            deleteMsg={deleteMsg}
+            setMsg={setMsg}
             writeDate={writeDate}
             showMsg={showMsg}
-            />
+          />
           <Box
             as="form"
             styleSheet={{
               display: "flex",
-              flexWrap:"wrap",
+              flexWrap: "wrap",
               alignItems: "center",
             }}
           >
-          <Image
-            styleSheet={{
-              maxWidth: "50px",
-              maxHeight: "50px",
-              borderRadius: "50%",
-              display: "inline-block",
-              marginRight: "8px",
-              flex:"1"
-            }}
-            src={`https://github.com/${username}.png`}
-          />
-          <TextField
-            value={message.text}
-            onChange={(event) => {
-              setMsg({text:event.target.value,edit:message.edit});
-              setUpdateMsg((currUpdateMsg)=>{
-                return !currUpdateMsg
-              });
-            }}
-            onKeyPress={(event) => {
-              if (event.key === "Enter" && !event.shiftKey) {
-                  event.preventDefault();   
-                  if(message.edit!=0){
+            <Image
+              styleSheet={{
+                maxWidth: "50px",
+                maxHeight: "50px",
+                borderRadius: "50%",
+                display: "inline-block",
+                marginRight: "8px",
+                flex: "1",
+              }}
+              src={`https://github.com/${username}.png`}
+            />
+            <TextField
+              value={message.text}
+              onChange={(event) => {
+                setMsg({ text: event.target.value, edit: message.edit });
+                setUpdateMsg((currUpdateMsg) => {
+                  return !currUpdateMsg;
+                });
+              }}
+              onKeyPress={(event) => {
+                if (event.key === "Enter" && !event.shiftKey) {
+                  event.preventDefault();
+                  if (message.edit != 0) {
                     editMsg(message);
+                  } else {
+                    handleNewMsg(message.text);
                   }
-                  else{ 
-                      handleNewMsg(message.text);
-                  }
-              }
-            }}
-            placeholder="Insira sua mensagem aqui..."
-            type="textarea"
-            styleSheet={{
-              width: "70%",
-              border: "0",
-              resize: "none",
-              borderRadius: "5px",
-              padding: "8px 8px",
-              backgroundColor: appConfig.theme.colors.neutrals[800],
-              marginRight: "12px",
-              marginTop: "10px",
-              color: appConfig.theme.colors.neutrals[200],
-              flex:"1"
-            }}
+                }
+              }}
+              placeholder="Insira sua mensagem aqui..."
+              type="textarea"
+              styleSheet={{
+                width: "70%",
+                border: "0",
+                resize: "none",
+                borderRadius: "5px",
+                padding: "8px 8px",
+                backgroundColor: appConfig.theme.colors.neutrals[800],
+                marginRight: "12px",
+                marginTop: "10px",
+                color: appConfig.theme.colors.neutrals[200],
+                flex: "1",
+              }}
             />
             <ButtonSendSticker
-              onStickerClick={(sticker,stickername)=>{
-                handleNewMsg('/sticker:' + sticker[stickername])
+              onStickerClick={(sticker, stickername) => {
+                handleNewMsg("/sticker:" + sticker[stickername]);
               }}
             />
             <Button
               styleSheet={{
-                minWidth: '50px',
-                minHeight: '50px',
-                margin:'5px'
+                minWidth: "50px",
+                minHeight: "50px",
+                margin: "5px",
               }}
               buttonColors={{
                 contrastColor: appConfig.theme.colors.neutrals["000"],
@@ -363,11 +356,10 @@ export default function ChatPage() {
               }}
               iconName="arrowRight"
               onClick={() => {
-                { 
-                  if(message.edit!=0){
+                {
+                  if (message.edit != 0) {
                     editMsg(message);
-                  }
-                  else{   
+                  } else {
                     handleNewMsg(message.text);
                   }
                 }
@@ -405,6 +397,21 @@ function Header() {
 }
 
 function MessageList(props) {
+  const [mouseOver, setMouseOver] = React.useState(0);
+  const [followers, setFollowers] = React.useState("");
+  const [userReps, setUserReps] = React.useState("");
+
+  function getUserCardInfo(msgAtual) {
+    fetch(`https://api.github.com/users/${msgAtual.from}`).then(
+      async (resposta) => {
+        let dados = await resposta.json();
+        let followers = dados.followers;
+        setFollowers(followers);
+        let userReps = dados.public_repos;
+        setUserReps(userReps);
+      }
+    );
+  }
 
   return (
     <Box
@@ -419,7 +426,7 @@ function MessageList(props) {
       }}
     >
       {props.mensagens.map((msgAtual) => {
-          return (
+        return (
           <Text
             key={msgAtual.id}
             tag="li"
@@ -437,19 +444,142 @@ function MessageList(props) {
                 marginBottom: "8px",
               }}
             >
-            <Image
-              onMouseOver={()=>{
-                props.mouseOver(msgAtual);
-              }}
-              styleSheet={{
-                width: "30px",
-                height: "30px",
-                borderRadius: "50%",
-                display: "inline-block",
-                marginRight: "8px",
-              }}
-              src={`https://github.com/${msgAtual.from}.png`}
-            />
+              {mouseOver === msgAtual.id ? (
+                <>
+                  {getUserCardInfo(msgAtual)}
+                  <Box
+                    onMouseLeave={() => {
+                      setMouseOver(0);
+                    }}
+                    styleSheet={{
+                      position: "relative",
+                      width: "40vh",
+                      height: "35vh",
+                      backgroundColor: appConfig.theme.colors.neutrals[800],
+                      display: "grid",
+                      justifyContent: "center",
+                    }}
+                  >
+                    <Box
+                      styleSheet={{
+                        display: "grid",
+                        alignItems: "center",
+                        textAlign: "center",
+                        justifyContent: "center",
+                        gridGap: "10px"
+                      }}
+                    >
+                      <a
+                        style={{
+                          textDecoration: "none",
+                          display: "grid",
+                          gridGap: "5%"
+                        }}
+                        href={`https://github.com/${msgAtual.from}`}
+                      >
+                        <Image
+                          styleSheet={{
+                            backgroundColor: appConfig.theme.colors.neutrals[400],
+                            padding: "1vh",
+                            width: "15vh",
+                            height: "15vh",
+                            borderRadius: "50%",
+                            hover: {
+                              backgroundColor:
+                                appConfig.theme.colors.primary[600],
+                              width: "17.5vh",
+                              height: "17.5vh",
+                            },
+                          }}
+                          src={`https://github.com/${msgAtual.from}.png`}
+                        />
+                        <Text
+                          styleSheet={{
+                            color: appConfig.theme.colors.neutrals["300"],
+                            hover: {
+                              color: appConfig.theme.colors.primary[600],
+                            },
+                          }}
+                        >
+                          {msgAtual.from}
+                        </Text>
+                      </a>
+                    </Box>
+                    <Box
+                      styleSheet={{
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                      }}
+                    >
+                      <a
+                        style={{
+                          textDecoration: "none",
+                          alignItems: "center",
+                          textAlign: "center",
+                          justifyContent: "center",
+                          display: "grid",
+                          color: appConfig.theme.colors.neutrals["300"],
+                        }}
+                        target="_blank"
+                        href={`https://github.com/${msgAtual.from}?tab=followers`}
+                      >
+                        <Text
+                          styleSheet={{
+                            padding: "10px",
+                            hover: {
+                              color: appConfig.theme.colors.primary["300"],
+                            },
+                          }}
+                        >
+                          {followers}
+                          <br />
+                          {"seguidores"}
+                        </Text>
+                      </a>
+                      <a
+                        style={{
+                          textDecoration: "none",
+                          alignItems: "center",
+                          textAlign: "center",
+                          justifyContent: "center",
+                          display: "grid",
+                          color: appConfig.theme.colors.neutrals["300"],
+                        }}
+                        target="_blank"
+                        href={`https://github.com/${msgAtual.from}?tab=repositories`}
+                      >
+                        <Text
+                          styleSheet={{
+                            padding: "10px",
+                            hover: {
+                              color: appConfig.theme.colors.primary["300"],
+                            },
+                          }}
+                        >
+                          {userReps}
+                          <br />
+                          {"repositórios"}
+                        </Text>
+                      </a>
+                    </Box>
+                  </Box>
+                </>
+              ) : (
+                <Image
+                  onMouseOver={() => {
+                    setMouseOver(msgAtual.id);
+                  }}
+                  styleSheet={{
+                    width: "30px",
+                    height: "30px",
+                    borderRadius: "50%",
+                    display: "inline-block",
+                    marginRight: "8px",
+                  }}
+                  src={`https://github.com/${msgAtual.from}.png`}
+                />
+              )}
               <Text tag="strong">{msgAtual.from}</Text>
               <Text
                 styleSheet={{
@@ -459,11 +589,11 @@ function MessageList(props) {
                 }}
                 tag="span"
               >
-              {props.writeDate(msgAtual.created_at)}
+                {props.writeDate(msgAtual.created_at)}
               </Text>
               <Button
-                onClick={()=>{
-                    props.setMsg({text:msgAtual.text,edit:msgAtual.id});
+                onClick={() => {
+                  props.setMsg({ text: msgAtual.text, edit: msgAtual.id });
                 }}
                 variant="tertiary"
                 iconName="FaPencilAlt"
@@ -476,7 +606,7 @@ function MessageList(props) {
               />
               <Button
                 onClick={() => {
-                    props.deleteMsg(msgAtual);
+                  props.deleteMsg(msgAtual);
                 }}
                 variant="tertiary"
                 iconName="FaTrash"
