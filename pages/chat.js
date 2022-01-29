@@ -32,15 +32,15 @@ function realTimeMsgListener(msgFunc){
     .from('messages')
     .on('*', (response)=>{
       if(response.eventType==='INSERT'){
-        console.log('insert response: ', response.new)
+        //console.log('insert response: ', response.new)
         msgFunc('INSERT',response.new);
       }
       else if(response.eventType==='DELETE'){
-        console.log('delete response: ', response.old)
+        //console.log('delete response: ', response.old)
         msgFunc('DELETE',response.old);
       }
       else if(response.eventType==='UPDATE'){
-        console.log('update response: ', response.new)
+        //console.log('update response: ', response.new)
         msgFunc('UPDATE',response.new);
       }
     })
@@ -64,7 +64,7 @@ export default function ChatPage() {
     .select("*")
     .order("id",{ascending:false})
     .then(({data})=>{
-      console.log("Initial select: " + data);
+      //console.log("Initial select: " + data);
       setMsgList(data);
       setMsgsLoaded(true);
     })  
@@ -105,11 +105,9 @@ export default function ChatPage() {
   React.useEffect(()=>{
     var currMsgSplit = message.text.split(' ')
     var lastMsg = currMsgSplit[currMsgSplit.length-1]
-    console.log("last message1: ", lastMsg);
     if(lastMsg.length!=1 && lastMsg.startsWith(':') && lastMsg.endsWith(':')){
       lastMsg = lastMsg.replaceAll(':','')
       lastMsg = lastMsg.replaceAll('_',' ')
-      console.log("last message2: ", lastMsg);
       fetch('https://unpkg.com/emoji.json@13.1.0/emoji.json')
       .then((response)=>{
         return response.json()
@@ -117,7 +115,7 @@ export default function ChatPage() {
       .then((data)=>{
         data.every((emoji)=>{
           if(emoji.name===lastMsg){
-            console.log("emoji: ", emoji)
+            //console.log("emoji: ", emoji)
             setEmoji(emoji.char)
             return false
           }
@@ -134,7 +132,7 @@ export default function ChatPage() {
   React.useEffect(()=>{
     setMsg((currMsg)=>{
       var currMsgSplit = currMsg.text.split(' ')
-      console.log("emoji1: " + emoji)
+      //console.log("emoji1: " + emoji)
       currMsgSplit[currMsgSplit.length-1] = emoji + " ";
       var text = currMsgSplit.join(' ');
       return {text: text, edit: 0}
@@ -173,7 +171,7 @@ export default function ChatPage() {
     return date;
   }
   function mouseOver(msgAtual){
-    console.log("Mouse over " + msgAtual.from)
+    //console.log("Mouse over " + msgAtual.from)
   }
 
   function handleNewMsg(newMsg) {
@@ -187,7 +185,7 @@ export default function ChatPage() {
       .from("messages")
       .insert([mensagem])
       .then(({data})=>{
-        console.log("Performed insert: ",data);
+        //console.log("Performed insert: ",data);
       })
 
       setMsg({text:"",edit:0});
@@ -199,7 +197,7 @@ export default function ChatPage() {
         .update({text:eMsg.text})
         .match({id:eMsg.edit})
         .then(({data})=>{
-          console.log("Performed update: ",data);
+          //console.log("Performed update: ",data);
         });
       setMsg({text:"",edit:0});
     }
@@ -211,7 +209,7 @@ export default function ChatPage() {
         .delete()
         .match({id:delMsg.id})
         .then(({data})=>{
-          console.log("Performed delete: ",data);
+          //console.log("Performed delete: ",data);
         });
     }
   }
@@ -311,7 +309,6 @@ export default function ChatPage() {
             value={message.text}
             onChange={(event) => {
               setMsg({text:event.target.value,edit:message.edit});
-              console.log("welp")
               setUpdateMsg((currUpdateMsg)=>{
                 return !currUpdateMsg
               });
@@ -344,7 +341,6 @@ export default function ChatPage() {
             />
             <ButtonSendSticker
               onStickerClick={(sticker,stickername)=>{
-                console.log('set sticker: ' + sticker)
                 handleNewMsg(':sticker: ' + sticker[stickername])
               }}
             />
