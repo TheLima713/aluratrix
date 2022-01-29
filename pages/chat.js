@@ -131,7 +131,8 @@ export default function ChatPage() {
             }
           })
         })
-      }}
+      }
+    }
   },[updateMsg])
 
   //FUNCTIONS
@@ -145,6 +146,8 @@ export default function ChatPage() {
             maxHeight:'10vh'
           }}
           src={appConfig.stickers[msgAtual.text.replace('/sticker:','')]}/>
+      : msgAtual.text.startsWith('//sticker:')
+      ? msgAtual.text.replace('//','/')
       : msgAtual.text
     )
   }
@@ -171,9 +174,18 @@ export default function ChatPage() {
 
   function handleNewMsg(newMsg) {
 
+    if(newMsg.startsWith('/') && !newMsg.startsWith('//')){
+      var cc = newMsg.charCodeAt(1);
+      var isAN = ((cc > 47 && cc < 58) || (cc > 64 && cc < 91) || (cc > 96 && cc < 123))
+      if(!isAN){
+        newMsg = newMsg.replace('/','')
+      }
+    }
+    var text = newMsg;
+
     const mensagem = {
       from: username,
-      text: newMsg
+      text: text
     };
     
     supabaseClient
