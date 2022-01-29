@@ -101,43 +101,38 @@ export default function ChatPage() {
       }
     })
   },[])
+  
   //effect pra atualizar a mensagem sempre, checando se a ultima "palavra" eh um emoji
   React.useEffect(()=>{
     var currMsgSplit = message.text.split(' ')
     var lastMsg = currMsgSplit[currMsgSplit.length-1]
-    if(lastMsg.length!=1 && lastMsg.startsWith(':') && lastMsg.endsWith(':')){
-      lastMsg = lastMsg.replaceAll(':','')
-      lastMsg = lastMsg.replaceAll('_',' ')
-      fetch('https://unpkg.com/emoji.json@13.1.0/emoji.json')
-      .then((response)=>{
-        return response.json()
-      })
-      .then((data)=>{
-        data.every((emoji)=>{
-          if(emoji.name===lastMsg){
-            //console.log("emoji: ", emoji)
-            setEmoji(emoji.char)
-            return false
-          }
-          else{
-            return true;
-          }
+    for(var n = 0; n < currMsgSplit.length;n++){
+      if(currMsgSplit[n].length!=1 && currMsgSplit[n].startsWith(':') && currMsgSplit[n].endsWith(':')){
+        currMsgSplit[n] = currMsgSplit[n].replaceAll(':','')
+        currMsgSplit[n] = currMsgSplit[n].replaceAll('_',' ')
+        fetch('https://unpkg.com/emoji.json@13.1.0/emoji.json')
+        .then((response)=>{
+          return response.json()
         })
-      })
-      currMsgSplit[currMsgSplit.length-1] = emoji;
-    }
+        .then((data)=>{
+          data.every((emoji)=>{
+            if(emoji.name===currMsgSplit[n]){
+              //console.log("emoji: ", emoji)
+              setEmoji(emoji.char)
+              setMsg((currMsg)=>{
+                currMsgSplit[n] = emoji.char + " ";
+                var text = currMsgSplit.join(' ');
+                return {text: text, edit: message.edit}
+              })
+              return false
+            }
+            else{
+              return true;
+            }
+          })
+        })
+      }}
   },[updateMsg])
-
-  //substitui a ultima "palavra" por um emoji quando o mesmo eh modificado
-  React.useEffect(()=>{
-    setMsg((currMsg)=>{
-      var currMsgSplit = currMsg.text.split(' ')
-      //console.log("emoji1: " + emoji)
-      currMsgSplit[currMsgSplit.length-1] = emoji + " ";
-      var text = currMsgSplit.join(' ');
-      return {text: text, edit: 0}
-    })
-  },[emoji])
 
   //FUNCTIONS
 
@@ -185,23 +180,20 @@ export default function ChatPage() {
       .from("messages")
       .insert([mensagem])
       .then(({data})=>{
-        console.log("Performed insert: ",data);
+        //console.log("Performed insert: ",data);
       })
 
       setMsg({text:"",edit:0});
   }
   function editMsg(eMsg){
-    console.log(eMsg)
-    if(eMsg.from===username){
-      supabaseClient
-        .from("messages")
-        .update({text:eMsg.text})
-        .match({id:eMsg.edit})
-        .then(({data})=>{
-          console.log("Performed update: ",data);
-        });
-      setMsg({text:"",edit:0});
-    }
+    supabaseClient
+      .from("messages")
+      .update({text:eMsg.text})
+      .match({id:eMsg.edit,from:username})
+      .then(({data})=>{
+        //console.log("Performed update: ",data);
+      });
+    setMsg({text:"",edit:0});
   }
   function deleteMsg(delMsg) {
     if(delMsg.from===username){
@@ -210,7 +202,7 @@ export default function ChatPage() {
         .delete()
         .match({id:delMsg.id})
         .then(({data})=>{
-          console.log("Performed delete: ",data);
+          //console.log("Performed delete: ",data);
         });
     }
   }
