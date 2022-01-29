@@ -24,8 +24,8 @@ const supabaseClient = createClient(SUPABASE_URL,SUPABASE_ANON_KEY);
 //TODO make edit work with database DONE!
 //TODO make delete work with database DONE!
 //TODO make mouseover with profile for user and use database for info
-//TODO change stickers on config.json to object, and replace :{name}: with embeded sticker
-//TODO make delete and update message call the listener
+//TODO change stickers on config.json to object, and replace :{name}: with embeded sticker DONE!
+//TODO make delete and update message call the listener DONE!!
 
 function realTimeMsgListener(msgFunc){
   return supabaseClient
@@ -138,13 +138,13 @@ export default function ChatPage() {
 
   function showMsg(msgAtual){
     return ( 
-      msgAtual.text.startsWith(':sticker:')
+      msgAtual.text.startsWith('/sticker:')
       ? <Image
           styleSheet={{
             maxWidth:'10vh',
             maxHeight:'10vh'
           }}
-          src={msgAtual.text.replace(':sticker:','')}/>
+          src={appConfig.stickers[msgAtual.text.replace('/sticker:','')]}/>
       : msgAtual.text
     )
   }
@@ -334,7 +334,7 @@ export default function ChatPage() {
             />
             <ButtonSendSticker
               onStickerClick={(sticker,stickername)=>{
-                handleNewMsg(':sticker: ' + sticker[stickername])
+                handleNewMsg('/sticker:' + sticker[stickername])
               }}
             />
             <Button
