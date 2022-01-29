@@ -12,16 +12,6 @@ import { createClient } from "@supabase/supabase-js";
 import { useRouter } from "next/router";
 import { ButtonSendSticker } from "../src/components/ButtonSendSticker";
 
-export async function getServerSideProps(){
-  const {SUPABASE_ANON_KEY, SUPABASE_URL} = process.env;
-  return {
-    props:{
-      SUPABASE_ANON_KEY,
-      SUPABASE_URL,
-    },
-  };
-}
-
 //TODO make username global DONE!
 //TODO use supabase's created_at to display time and date DONE!
 //TODO fix date to show today and or yesterday DONE!
@@ -50,7 +40,7 @@ function realTimeMsgListener(msgFunc) {
     .subscribe();
 }
 
-export default function ChatPage({SUPABASE_ANON_KEY, SUPABASE_URL}) {
+function ChatPage({SUPABASE_ANON_KEY, SUPABASE_URL}) {
   //const username = "TheLima713";
   const [message, setMsg] = React.useState({ text: "", edit: 0 });
   const [msgList, setMsgList] = React.useState([]); //necessario passar por função caso listener precise do valor atual
@@ -630,4 +620,16 @@ function MessageList(props) {
       })}
     </Box>
   );
+  export async function getServerSideProps(){
+    const {SUPABASE_ANON_KEY, SUPABASE_URL} = process.env;
+    return {
+      props:{
+        SUPABASE_ANON_KEY,
+        SUPABASE_URL,
+      },
+    };
+  }
+  
 }
+
+export default ChatPage;
