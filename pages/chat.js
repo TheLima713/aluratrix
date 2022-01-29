@@ -244,7 +244,7 @@ export default function ChatPage() {
         justifyContent: "center",
         backgroundColor: appConfig.theme.colors.primary[500],
         backgroundImage: `url(https://virtualbackgrounds.site/wp-content/uploads/2020/08/the-matrix-digital-rain.jpg)`,
-        backgroundRepeat: "no-repeat",
+        backgroundRepeat:"no-repeat",
         backgroundSize: "cover",
         backgroundBlendMode: "multiply",
         color: appConfig.theme.colors.neutrals["000"],
@@ -258,9 +258,9 @@ export default function ChatPage() {
           boxShadow: "0 2px 10px 0 rgb(0 0 0 / 20%)",
           borderRadius: "5px",
           backgroundColor: appConfig.theme.colors.neutrals[700],
-          height: "100%",
+          height: "100vh",
           maxWidth: "95%",
-          maxHeight: "95vh",
+          maxHeight:"95vh",
           padding: "32px",
         }}
       >
