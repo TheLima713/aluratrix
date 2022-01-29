@@ -185,7 +185,7 @@ export default function ChatPage() {
       .from("messages")
       .insert([mensagem])
       .then(({data})=>{
-        //console.log("Performed insert: ",data);
+        console.log("Performed insert: ",data);
       })
 
       setMsg({text:"",edit:0});
@@ -197,7 +197,7 @@ export default function ChatPage() {
         .update({text:eMsg.text})
         .match({id:eMsg.edit})
         .then(({data})=>{
-          //console.log("Performed update: ",data);
+          console.log("Performed update: ",data);
         });
       setMsg({text:"",edit:0});
     }
@@ -209,7 +209,7 @@ export default function ChatPage() {
         .delete()
         .match({id:delMsg.id})
         .then(({data})=>{
-          //console.log("Performed delete: ",data);
+          console.log("Performed delete: ",data);
         });
     }
   }
