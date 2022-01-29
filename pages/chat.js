@@ -191,6 +191,7 @@ export default function ChatPage() {
       setMsg({text:"",edit:0});
   }
   function editMsg(eMsg){
+    console.log(eMsg)
     if(eMsg.from===username){
       supabaseClient
         .from("messages")
