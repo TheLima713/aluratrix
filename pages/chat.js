@@ -193,7 +193,7 @@ export default function ChatPage() {
       setMsg({text:"",edit:0});
   }
   function editMsg(eMsg){
-    if(delMsg.from===username){
+    if(eMsg.from===username){
       supabaseClient
         .from("messages")
         .update({text:eMsg.text})
