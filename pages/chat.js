@@ -12,11 +12,15 @@ import { createClient } from "@supabase/supabase-js";
 import { useRouter } from "next/router";
 import { ButtonSendSticker } from "../src/components/ButtonSendSticker";
 
-const SUPABASE_ANON_KEY =
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoiYW5vbiIsImlhdCI6MTY0MzI4MzMwOCwiZXhwIjoxOTU4ODU5MzA4fQ.KSQ2JTLdQkr_iAt62p_njCWvFi88NnG4OGrEbqvZXYQ";
-const SUPABASE_URL = "https://cdgumxhojlmimopqulxf.supabase.co";
-
-const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+export async function getServerSideProps(){
+  const {SUPABASE_ANON_KEY, SUPABASE_URL} = process.env;
+  return {
+    props:{
+      SUPABASE_ANON_KEY,
+      SUPABASE_URL,
+    },
+  };
+}
 
 //TODO make username global DONE!
 //TODO use supabase's created_at to display time and date DONE!
@@ -46,12 +50,13 @@ function realTimeMsgListener(msgFunc) {
     .subscribe();
 }
 
-export default function ChatPage() {
+export default function ChatPage({SUPABASE_ANON_KEY, SUPABASE_URL}) {
   //const username = "TheLima713";
   const [message, setMsg] = React.useState({ text: "", edit: 0 });
   const [msgList, setMsgList] = React.useState([]); //necessario passar por função caso listener precise do valor atual
   const [msgsLoaded, setMsgsLoaded] = React.useState(false);
   const [updateMsg, setUpdateMsg] = React.useState(true);
+  const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
   const router = useRouter();
   const username = router.query.username; //nao é em tempo real, diferentemente do useState!
