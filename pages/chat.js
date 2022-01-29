@@ -458,6 +458,7 @@ function MessageList(props) {
                       backgroundColor: appConfig.theme.colors.neutrals[800],
                       display: "grid",
                       justifyContent: "center",
+                      borderRadius:"1vh"
                     }}
                   >
                     <Box
