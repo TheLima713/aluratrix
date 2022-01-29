@@ -22,24 +22,6 @@ import { ButtonSendSticker } from "../src/components/ButtonSendSticker";
 //TODO change stickers on config.json to object, and replace :{name}: with embeded sticker DONE!
 //TODO make delete and update message call the listener DONE!!
 
-function realTimeMsgListener(msgFunc) {
-  return supabaseClient
-    .from("messages")
-    .on("*", (response) => {
-      if (response.eventType === "INSERT") {
-        //console.log('insert response: ', response.new)
-        msgFunc("INSERT", response.new);
-      } else if (response.eventType === "DELETE") {
-        //console.log('delete response: ', response.old)
-        msgFunc("DELETE", response.old);
-      } else if (response.eventType === "UPDATE") {
-        //console.log('update response: ', response.new)
-        msgFunc("UPDATE", response.new);
-      }
-    })
-    .subscribe();
-}
-
 function ChatPage({SUPABASE_ANON_KEY, SUPABASE_URL}) {
   //const username = "TheLima713";
   const [message, setMsg] = React.useState({ text: "", edit: 0 });
@@ -125,6 +107,24 @@ function ChatPage({SUPABASE_ANON_KEY, SUPABASE_URL}) {
 
   //FUNCTIONS
 
+  function realTimeMsgListener(msgFunc) {
+    return supabaseClient
+      .from("messages")
+      .on("*", (response) => {
+        if (response.eventType === "INSERT") {
+          //console.log('insert response: ', response.new)
+          msgFunc("INSERT", response.new);
+        } else if (response.eventType === "DELETE") {
+          //console.log('delete response: ', response.old)
+          msgFunc("DELETE", response.old);
+        } else if (response.eventType === "UPDATE") {
+          //console.log('update response: ', response.new)
+          msgFunc("UPDATE", response.new);
+        }
+      })
+      .subscribe();
+  }
+  
   function showMsg(msgAtual) {
     return msgAtual.text.startsWith("/sticker:") ? (
       <Image
