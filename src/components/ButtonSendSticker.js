@@ -79,7 +79,37 @@ export function ButtonSendSticker(props) {
               overflow: 'auto',
             }}
           >
-            {appConfig.stickers.map((sticker) => (
+            {Object.keys(appConfig.stickers).map((sticker) => (
+              <Text
+                onClick={() => {
+                  // console.log('[DENTRO DO COMPONENTE] Clicou no sticker:', sticker);
+                  if (Boolean(props.onStickerClick)) {
+                    props.onStickerClick(appConfig.stickers,sticker);
+                  }
+                }}
+                tag="li" key={appConfig.stickers[sticker]}
+                styleSheet={{
+                  width: '50%',
+                  borderRadius: '5px',
+                  padding: '10px',
+                  focus: {
+                    backgroundColor: appConfig.theme.colors.neutrals[600],
+                  },
+                  hover: {
+                    backgroundColor: appConfig.theme.colors.neutrals[600],
+                  }
+                }}
+              >
+                <Image src={appConfig.stickers[sticker]} />
+              </Text>
+            ))}
+          </Box>
+        </Box>
+      )}
+    </Box>
+  )
+}
+/*.map((sticker) => (
               <Text
                 onClick={() => {
                   // console.log('[DENTRO DO COMPONENTE] Clicou no sticker:', sticker);
@@ -102,10 +132,4 @@ export function ButtonSendSticker(props) {
               >
                 <Image src={sticker} />
               </Text>
-            ))}
-          </Box>
-        </Box>
-      )}
-    </Box>
-  )
-}
+            ))*/

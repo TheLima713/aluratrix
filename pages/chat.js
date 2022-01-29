@@ -52,6 +52,8 @@ export default function ChatPage() {
   const [message, setMsg] = React.useState({text:"",edit:0});
   const [msgList, setMsgList] = React.useState([]);//necessario passar por função caso listener precise do valor atual
   const [msgsLoaded, setMsgsLoaded] = React.useState(false);
+  const [emoji,setEmoji] = React.useState('');
+  const [updateMsg,setUpdateMsg] = React.useState(true);
 
   const router = useRouter();
   const username = router.query.username//nao é em tempo real, diferentemente do useState!
@@ -99,9 +101,60 @@ export default function ChatPage() {
       }
     })
   },[])
+  //effect pra atualizar a mensagem sempre, checando se a ultima "palavra" eh um emoji
+  React.useEffect(()=>{
+    var currMsgSplit = message.text.split(' ')
+    var lastMsg = currMsgSplit[currMsgSplit.length-1]
+    console.log("last message1: ", lastMsg);
+    if(lastMsg.length!=1 && lastMsg.startsWith(':') && lastMsg.endsWith(':')){
+      lastMsg = lastMsg.replaceAll(':','')
+      lastMsg = lastMsg.replaceAll('_',' ')
+      console.log("last message2: ", lastMsg);
+      fetch('https://unpkg.com/emoji.json@13.1.0/emoji.json')
+      .then((response)=>{
+        return response.json()
+      })
+      .then((data)=>{
+        data.every((emoji)=>{
+          if(emoji.name===lastMsg){
+            console.log("emoji: ", emoji)
+            setEmoji(emoji.char)
+            return false
+          }
+          else{
+            return true;
+          }
+        })
+      })
+      currMsgSplit[currMsgSplit.length-1] = emoji;
+    }
+  },[updateMsg])
+
+  //substitui a ultima "palavra" por um emoji quando o mesmo eh modificado
+  React.useEffect(()=>{
+    setMsg((currMsg)=>{
+      var currMsgSplit = currMsg.text.split(' ')
+      console.log("emoji1: " + emoji)
+      currMsgSplit[currMsgSplit.length-1] = emoji + " ";
+      var text = currMsgSplit.join(' ');
+      return {text: text, edit: 0}
+    })
+  },[emoji])
 
   //FUNCTIONS
 
+  function showMsg(msgAtual){
+    return ( 
+      msgAtual.text.startsWith(':sticker:')
+      ? <Image
+          styleSheet={{
+            maxWidth:'10vh',
+            maxHeight:'10vh'
+          }}
+          src={msgAtual.text.replace(':sticker:','')}/>
+      : msgAtual.text
+    )
+  }
   function writeDate(time){
     const day = new Date().getDate();
     const dayDiff = day - parseInt(time.substring(8,10));
@@ -122,12 +175,13 @@ export default function ChatPage() {
   function mouseOver(msgAtual){
     console.log("Mouse over " + msgAtual.from)
   }
+
   function handleNewMsg(newMsg) {
+
     const mensagem = {
       from: username,
       text: newMsg
     };
-
     
     supabaseClient
       .from("messages")
@@ -136,26 +190,30 @@ export default function ChatPage() {
         console.log("Performed insert: ",data);
       })
 
-    setMsg({text:"",edit:0});
+      setMsg({text:"",edit:0});
   }
   function editMsg(eMsg){
-    supabaseClient
-      .from("messages")
-      .update({text:eMsg.text})
-      .match({id:eMsg.edit})
-      .then(({data})=>{
-        console.log("Performed update: ",data);
-      });
-    setMsg({text:"",edit:0});
+    if(delMsg.from===username){
+      supabaseClient
+        .from("messages")
+        .update({text:eMsg.text})
+        .match({id:eMsg.edit})
+        .then(({data})=>{
+          console.log("Performed update: ",data);
+        });
+      setMsg({text:"",edit:0});
+    }
   }
   function deleteMsg(delMsg) {
-    supabaseClient
-      .from("messages")
-      .delete()
-      .match({id:delMsg.id})
-      .then(({data})=>{
-        console.log("Performed delete: ",data);
-      });
+    if(delMsg.from===username){
+      supabaseClient
+        .from("messages")
+        .delete()
+        .match({id:delMsg.id})
+        .then(({data})=>{
+          console.log("Performed delete: ",data);
+        });
+    }
   }
 
   if(!msgsLoaded){
@@ -228,6 +286,7 @@ export default function ChatPage() {
             setMsg={setMsg} 
             mouseOver={mouseOver}
             writeDate={writeDate}
+            showMsg={showMsg}
             />
           <Box
             as="form"
@@ -252,6 +311,10 @@ export default function ChatPage() {
             value={message.text}
             onChange={(event) => {
               setMsg({text:event.target.value,edit:message.edit});
+              console.log("welp")
+              setUpdateMsg((currUpdateMsg)=>{
+                return !currUpdateMsg
+              });
             }}
             onKeyPress={(event) => {
               if (event.key === "Enter" && !event.shiftKey) {
@@ -259,7 +322,7 @@ export default function ChatPage() {
                   if(message.edit!=0){
                     editMsg(message);
                   }
-                  else{   
+                  else{ 
                       handleNewMsg(message.text);
                   }
               }
@@ -280,9 +343,9 @@ export default function ChatPage() {
             }}
             />
             <ButtonSendSticker
-              onStickerClick={(sticker)=>{
+              onStickerClick={(sticker,stickername)=>{
                 console.log('set sticker: ' + sticker)
-                handleNewMsg(':sticker: ' + sticker)
+                handleNewMsg(':sticker: ' + sticker[stickername])
               }}
             />
             <Button
@@ -304,7 +367,7 @@ export default function ChatPage() {
                     editMsg(message);
                   }
                   else{   
-                      handleNewMsg(message.text);
+                    handleNewMsg(message.text);
                   }
                 }
               }}
@@ -424,14 +487,7 @@ function MessageList(props) {
                 }}
               />
             </Box>
-            {msgAtual.text.startsWith(':sticker:')
-              ? <Image
-                  styleSheet={{
-                    maxWidth:'10vh',
-                    maxHeight:'10vh'
-                  }}
-                  src={msgAtual.text.replace(':sticker:','')}/>
-              : msgAtual.text}
+            {props.showMsg(msgAtual)}
           </Text>
         );
       })}
