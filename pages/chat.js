@@ -123,22 +123,41 @@ function ChatPage({SUPABASE_ANON_KEY, SUPABASE_URL}) {
         }
       })
       .subscribe();
-  }
-  
+  }  
   function showMsg(msgAtual) {
-    return msgAtual.text.startsWith("/sticker:") ? (
-      <Image
+    var msgSplit = msgAtual.text.split(' ');
+    for(var n = 0; n < msgSplit.length; n++){
+      if(msgSplit[n].startsWith('/sticker:')){
+        var size = '4vh';
+        if(msgSplit.length==1){
+          size = '15vh';
+        }
+        msgSplit[n] = 
+        <Image
+          styleSheet={{
+            maxWidth: size,
+            maxHeight: size,
+            display:'inline'
+          }}
+          src={appConfig.stickers[msgSplit[n].replace("/sticker:", "")]}
+          />
+      }
+      else{
+        msgSplit[n] =
+          <Text>
+            {msgSplit[n] + ' '}
+          </Text>;
+      }
+    }
+    return (
+      <Box
         styleSheet={{
-          maxWidth: "10vh",
-          maxHeight: "10vh",
+          display:'inline'
         }}
-        src={appConfig.stickers[msgAtual.text.replace("/sticker:", "")]}
-      />
-    ) : msgAtual.text.startsWith("//sticker:") ? (
-      msgAtual.text.replace("//", "/")
-    ) : (
-      msgAtual.text
-    );
+      >
+        {msgSplit}
+      </Box>
+    )
   }
   function writeDate(time) {
     const day = new Date().getDate();
