@@ -244,7 +244,7 @@ function ChatPage({ SUPABASE_ANON_KEY, SUPABASE_URL }) {
         backgroundColor: appConfig.theme.colors.neutrals[200],
         backgroundImage: `url(https://wallpapercave.com/dwp1x/wp3116860.jpg)`,
         backgroundRepeat: "no-repeat",
-        backgroundSize: "contain",
+        backgroundSize: "cover",
         backgroundBlendMode: "multiply",
       }}
     >
@@ -261,7 +261,7 @@ function ChatPage({ SUPABASE_ANON_KEY, SUPABASE_URL }) {
           maxWidth: "95%",
           maxHeight: "95vh",
           padding: "32px",
-          color:appConfig.theme.colors.neutrals[100]
+          color:appConfig.theme.colors.neutrals
         }}
       >
         <Header />
