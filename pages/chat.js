@@ -22,7 +22,7 @@ import { ButtonSendSticker } from "../src/components/ButtonSendSticker";
 //TODO change stickers on config.json to object, and replace :{name}: with embeded sticker DONE!
 //TODO make delete and update message call the listener DONE!!
 
-function ChatPage({SUPABASE_ANON_KEY, SUPABASE_URL}) {
+function ChatPage({ SUPABASE_ANON_KEY, SUPABASE_URL }) {
   //const username = "TheLima713";
   const [message, setMsg] = React.useState({ text: "", edit: 0 });
   const [msgList, setMsgList] = React.useState([]); //necessario passar por função caso listener precise do valor atual
@@ -123,41 +123,38 @@ function ChatPage({SUPABASE_ANON_KEY, SUPABASE_URL}) {
         }
       })
       .subscribe();
-  }  
+  }
   function showMsg(msgAtual) {
-    var msgSplit = msgAtual.text.split(' ');
-    for(var n = 0; n < msgSplit.length; n++){
-      if(msgSplit[n].startsWith('/sticker:')){
-        var size = '4vh';
-        if(msgSplit.length==1){
-          size = '15vh';
+    var msgSplit = msgAtual.text.split(" ");
+    for (var n = 0; n < msgSplit.length; n++) {
+      if (msgSplit[n].startsWith("/sticker:")) {
+        var size = "4vh";
+        if (msgSplit.length == 1) {
+          size = "15vh";
         }
-        msgSplit[n] = 
-        <Image
-          styleSheet={{
-            maxWidth: size,
-            maxHeight: size,
-            display:'inline'
-          }}
-          src={appConfig.stickers[msgSplit[n].replace("/sticker:", "")]}
+        msgSplit[n] = (
+          <Image
+            styleSheet={{
+              maxWidth: size,
+              maxHeight: size,
+              display: "inline",
+            }}
+            src={appConfig.stickers[msgSplit[n].replace("/sticker:", "")]}
           />
-      }
-      else{
-        msgSplit[n] =
-          <Text>
-            {msgSplit[n] + ' '}
-          </Text>;
+        );
+      } else {
+        msgSplit[n] = <Text>{msgSplit[n] + " "}</Text>;
       }
     }
     return (
       <Box
         styleSheet={{
-          display:'inline'
+          display: "inline",
         }}
       >
         {msgSplit}
       </Box>
-    )
+    );
   }
   function writeDate(time) {
     const day = new Date().getDate();
@@ -181,49 +178,37 @@ function ChatPage({SUPABASE_ANON_KEY, SUPABASE_URL}) {
     return date;
   }
   function handleNewMsg(newMsg) {
+    //checa se a mensagem não contém 'comentários'
+    //se começa com '/' e não é o '//' do sticker:
     if (newMsg.startsWith("/") && !newMsg.startsWith("//")) {
+      //pega o caractere depois do '/'
       var cc = newMsg.charCodeAt(1);
+      //checa se é um caractere alfanumérico
       var isAN =
         (cc > 47 && cc < 58) || (cc > 64 && cc < 91) || (cc > 96 && cc < 123);
+      //se não for, tira o comentário pra mostrar a mensagem
       if (!isAN) {
         newMsg = newMsg.replace("/", "");
       }
     }
-    var text = newMsg;
-
     const mensagem = {
       from: username,
-      text: text,
+      text: newMsg,
     };
 
-    supabaseClient
-      .from("messages")
-      .insert([mensagem])
-      .then(({ data }) => {
-        //console.log("Performed insert: ",data);
-      });
-
+    supabaseClient.from("messages").insert([mensagem]);
     setMsg({ text: "", edit: 0 });
   }
   function editMsg(eMsg) {
     supabaseClient
       .from("messages")
       .update({ text: eMsg.text })
-      .match({ id: eMsg.edit, from: username })
-      .then(({ data }) => {
-        //console.log("Performed update: ",data);
-      });
+      .match({ id: eMsg.edit, from: username });
     setMsg({ text: "", edit: 0 });
   }
   function deleteMsg(delMsg) {
     if (delMsg.from === username) {
-      supabaseClient
-        .from("messages")
-        .delete()
-        .match({ id: delMsg.id })
-        .then(({ data }) => {
-          //console.log("Performed delete: ",data);
-        });
+      supabaseClient.from("messages").delete().match({ id: delMsg.id });
     }
   }
 
@@ -256,16 +241,16 @@ function ChatPage({SUPABASE_ANON_KEY, SUPABASE_URL}) {
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        backgroundColor: appConfig.theme.colors.primary[500],
-        backgroundImage: `url(https://virtualbackgrounds.site/wp-content/uploads/2020/08/the-matrix-digital-rain.jpg)`,
-        backgroundRepeat:"no-repeat",
+        backgroundColor: appConfig.theme.colors.neutrals[200],
+        backgroundImage: `url(https://wallpapercave.com/dwp1x/wp3116860.jpg)`,
+        backgroundRepeat: "no-repeat",
         backgroundSize: "cover",
         backgroundBlendMode: "multiply",
-        color: appConfig.theme.colors.neutrals["000"],
       }}
     >
       <Box
         styleSheet={{
+          opacity:'0.9',
           display: "flex",
           flexDirection: "column",
           flex: 1,
@@ -274,8 +259,9 @@ function ChatPage({SUPABASE_ANON_KEY, SUPABASE_URL}) {
           backgroundColor: appConfig.theme.colors.neutrals[700],
           height: "100vh",
           maxWidth: "95%",
-          maxHeight:"95vh",
+          maxHeight: "95vh",
           padding: "32px",
+          color:appConfig.theme.colors.neutrals[100]
         }}
       >
         <Header />
@@ -448,6 +434,7 @@ function MessageList(props) {
               borderRadius: "5px",
               padding: "6px",
               marginBottom: "12px",
+              wordBreak: "break-all",
               hover: {
                 backgroundColor: appConfig.theme.colors.neutrals[700],
               },
@@ -472,7 +459,7 @@ function MessageList(props) {
                       backgroundColor: appConfig.theme.colors.neutrals[800],
                       display: "grid",
                       justifyContent: "center",
-                      borderRadius:"1vh"
+                      borderRadius: "1vh",
                     }}
                   >
                     <Box
@@ -481,20 +468,21 @@ function MessageList(props) {
                         alignItems: "center",
                         textAlign: "center",
                         justifyContent: "center",
-                        gridGap: "10px"
+                        gridGap: "10px",
                       }}
                     >
                       <a
                         style={{
                           textDecoration: "none",
                           display: "grid",
-                          gridGap: "5%"
+                          gridGap: "5%",
                         }}
                         href={`https://github.com/${msgAtual.from}`}
                       >
                         <Image
                           styleSheet={{
-                            backgroundColor: appConfig.theme.colors.neutrals[400],
+                            backgroundColor:
+                              appConfig.theme.colors.neutrals[400],
                             padding: "1vh",
                             width: "15vh",
                             height: "15vh",
@@ -638,13 +626,13 @@ function MessageList(props) {
         );
       })}
     </Box>
-  );  
+  );
 }
 
-export async function getServerSideProps(){
-  const {SUPABASE_ANON_KEY, SUPABASE_URL} = process.env;
+export async function getServerSideProps() {
+  const { SUPABASE_ANON_KEY, SUPABASE_URL } = process.env;
   return {
-    props:{
+    props: {
       SUPABASE_URL,
       SUPABASE_ANON_KEY,
     },
