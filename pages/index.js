@@ -61,7 +61,7 @@ export default function PaginaInicial() {
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          backgroundColor: appConfig.theme.colors.primary[500],
+          backgroundColor: appConfig.theme.colors.neutrals[200],
           backgroundImage: `url(https://wallpapercave.com/dwp1x/wp3116860.jpg)`,
           backgroundRepeat: "no-repeat",
           backgroundSize: "cover",

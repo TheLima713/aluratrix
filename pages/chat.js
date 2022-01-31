@@ -178,15 +178,10 @@ function ChatPage({ SUPABASE_ANON_KEY, SUPABASE_URL }) {
     return date;
   }
   function handleNewMsg(newMsg) {
-    //checa se a mensagem não contém 'comentários'
-    //se começa com '/' e não é o '//' do sticker:
     if (newMsg.startsWith("/") && !newMsg.startsWith("//")) {
-      //pega o caractere depois do '/'
       var cc = newMsg.charCodeAt(1);
-      //checa se é um caractere alfanumérico
       var isAN =
         (cc > 47 && cc < 58) || (cc > 64 && cc < 91) || (cc > 96 && cc < 123);
-      //se não for, tira o comentário pra mostrar a mensagem
       if (!isAN) {
         newMsg = newMsg.replace("/", "");
       }
@@ -196,19 +191,33 @@ function ChatPage({ SUPABASE_ANON_KEY, SUPABASE_URL }) {
       text: newMsg,
     };
 
-    supabaseClient.from("messages").insert([mensagem]);
+    supabaseClient
+      .from("messages")
+      .insert([mensagem])
+      .then((data)=>{
+        //
+      })
     setMsg({ text: "", edit: 0 });
   }
   function editMsg(eMsg) {
     supabaseClient
       .from("messages")
       .update({ text: eMsg.text })
-      .match({ id: eMsg.edit, from: username });
+      .match({ id: eMsg.edit, from: username })
+      .then((data)=>{
+        //
+      })
     setMsg({ text: "", edit: 0 });
   }
   function deleteMsg(delMsg) {
     if (delMsg.from === username) {
-      supabaseClient.from("messages").delete().match({ id: delMsg.id });
+      supabaseClient
+        .from("messages")
+        .delete()
+        .match({ id: delMsg.id })
+        .then((data)=>{
+          //
+        })
     }
   }
 
