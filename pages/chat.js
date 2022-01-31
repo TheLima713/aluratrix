@@ -347,8 +347,8 @@ function ChatPage({ SUPABASE_ANON_KEY, SUPABASE_URL }) {
               }}
             />
             <ButtonSendSticker
-              onStickerClick={(sticker, stickername) => {
-                handleNewMsg("/sticker:" + sticker[stickername]);
+              onStickerClick={(stickername) => {
+                handleNewMsg("/sticker:" + stickername);
               }}
             />
             <Button
