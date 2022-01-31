@@ -178,6 +178,7 @@ function ChatPage({ SUPABASE_ANON_KEY, SUPABASE_URL }) {
     return date;
   }
   function handleNewMsg(newMsg) {
+    //dummy
     if (newMsg.startsWith("/") && !newMsg.startsWith("//")) {
       var cc = newMsg.charCodeAt(1);
       var isAN =
