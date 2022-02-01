@@ -3,10 +3,6 @@ import React from "react";
 import { useRouter } from "next/router";
 import { Box, Button, Text, TextField, Image } from "@skynexui/components";
 
-function sleep(ms) {
-  return new Promise(resolve => setTimeout(resolve, ms));
-}
-
 function Title(props) {
   const Tag = props.tag || "h1";
   return (
@@ -25,34 +21,29 @@ function Title(props) {
   );
 }
 
-/*Componente React
-function HomePage() {
-    return (
-        <div>
-            <GlobalStyle/>
-            <Title tag="h2">Valor Ignorado </Title>
-            <h2>Discord-Aluratrix</h2>
-        </div>
-    )
-  }
-  
-  export default HomePage
-*/
-
-export default function PaginaInicial() {
+function PaginaInicial({ SUPABASE_ANON_KEY, SUPABASE_URL }) {
   //const username = 'TheLima713';
+  const [userList, setuserList] = React.useState([]);
   const [username, setUsername] = React.useState("TheLima713");
   const [location, setLocation] = React.useState("_");
+
+  // React.useEffect(() => {
+  //   supabaseClient
+  //     .from("users")
+  //     .select("*")
+  //     .order("id", { ascending: false })
+  //     .then(({ data }) => {
+  //       setUserList(data);
+  //       console.log("userlist: ", data)
+  //     })
+  // },[]);
+  
   React.useEffect(()=> {
     fetch(`https://api.github.com/users/${username}`)
     .then(response=>response.json())
     .then(data=>{setLocation(data.location)});
-  }, [username])
-
+  }, [username]);
   const router = useRouter();
-
-
-
 
   return (
     <>
@@ -90,7 +81,7 @@ export default function PaginaInicial() {
           <Box
             as="form"
             //quando submeter o botão de login:
-            onSubmit={function (event) {
+            onSubmit={(event)=>{
               event.preventDefault();
               router.push(`/chat?username=${username}`);
             }}
@@ -114,18 +105,6 @@ export default function PaginaInicial() {
             >
               {appConfig.name}
             </Text>
-            {/*
-              <input
-                type="text"
-                value={username}
-                onChange = {function handler(event){
-                  //console.log(event.target.value);
-                  //atualiza campo de username por meio da função criada por useState() do React
-                  const valor = event.target.value;
-                  setUsername(valor);
-                }}
-              />
-              */}
             <TextField
               value={username}
               onChange={function handler(event) {
@@ -218,3 +197,15 @@ export default function PaginaInicial() {
     </>
   );
 }
+
+export async function getServerSideProps() {
+  const { SUPABASE_ANON_KEY, SUPABASE_URL } = process.env;
+  return {
+    props: {
+      SUPABASE_URL,
+      SUPABASE_ANON_KEY
+    }
+  };
+}
+
+export default PaginaInicial;
